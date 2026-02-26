@@ -1,0 +1,94 @@
+import math
+import numpy as np
+import pygame
+
+
+def effect_vibe(surface):
+    width, height = surface.get_size()
+    new_surface = pygame.Surface((width, height)).convert_alpha()
+    new_surface.fill((0, 0, 0, 0))
+
+    time = pygame.time.get_ticks() / 1000
+    amplitude = 15
+    frequency = 0.05
+
+    for y in range(height):
+        offset_x = int(math.sin(y * frequency + time) * amplitude + math.sin(time + y * 0.1) * 3)
+        new_surface.blit(surface, (offset_x, y), area=pygame.Rect(0, y, width, 1))
+
+    rect = new_surface.get_rect()
+    return new_surface, rect
+
+
+def effect_wave(surface):
+    width, height = surface.get_size()
+    result = pygame.Surface((width, height))
+    time = pygame.time.get_ticks()
+
+    for y in range(height):
+        offset = int(20 * math.sin(y * 0.02 + time * 0.005))
+        result.blit(surface, (offset, y), (0, y, width, 1))
+
+    return result, result.get_rect(topleft=(0, 0))
+
+
+def effect_spin(surface):
+    width, height = surface.get_size()
+    time = pygame.time.get_ticks()
+
+    scale = 1 + 0.08 * math.sin(time * 0.005)
+
+    rotated = pygame.transform.rotozoom(
+        surface,
+        time * 0.05,
+        scale
+    )
+
+    rect = rotated.get_rect(center=(width // 2, height // 2))
+    return rotated, rect
+
+def effect_invert(surface):
+    arr = pygame.surfarray.array3d(surface)
+    arr = 255 - arr
+    result = pygame.surfarray.make_surface(arr)
+    return result, result.get_rect(topleft=(0, 0))
+
+def effect_rgb(surface):
+    width, height = surface.get_size()
+
+    scale = 0.2
+    small_w, small_h = max(1, int(width * scale)), max(1, int(height * scale))
+    small_surf = pygame.transform.smoothscale(surface, (small_w, small_h))
+
+    arr = pygame.surfarray.pixels3d(small_surf).astype(np.int16)
+
+    time = pygame.time.get_ticks() / 300
+
+    yy, xx = np.meshgrid(np.arange(small_h), np.arange(small_w), indexing='ij')
+    dx = xx - small_w // 2
+    dy = yy - small_h // 2
+    dist = np.hypot(dx, dy)
+
+    wave = np.sin(dist * 0.08 - time) * 127 + 128
+
+    r = (arr[:, :, 0] + wave.T) % 256
+    g = (arr[:, :, 1] + np.sin(wave.T * 0.024 * math.pi) * 128) % 256
+    b = (arr[:, :, 2] + np.cos(wave.T * 0.018 * math.pi) * 128) % 256
+
+    arr[:, :, 0] = r.astype(np.uint8)
+    arr[:, :, 1] = g.astype(np.uint8)
+    arr[:, :, 2] = b.astype(np.uint8)
+
+    new_surf = pygame.surfarray.make_surface(arr)
+    new_surf = pygame.transform.smoothscale(new_surf, (width, height))
+
+    return new_surf, new_surf.get_rect()
+
+
+SOUNDS = {
+    effect_wave:"bing_bing_boo.mp3",
+    effect_rgb:"",
+    effect_spin:"",
+    effect_vibe:"",
+    effect_invert:""
+}

@@ -1,4 +1,3 @@
-from CONSTANTS import *
 from forces import *
 import random
 import pygame
@@ -11,7 +10,7 @@ class Unit:
         if texture:
             self.image = pygame.transform.scale(
                 pygame.image.load(
-                    os.path.join(TEXTURES_DIR, "player.png")
+                    os.path.join(TEXTURES_DIR, texture)
                     ),
                 (self.width, self.height)
             )
@@ -46,14 +45,25 @@ class Player(Unit):
     def jump(self):
         self.speed_y.set_v(-JUMPFORCE)
 
-    def update(self, scr, walls):
+    def update(self, scr, walls, srngs):
         super().update(scr)
         
         self.speed_y.update()        
         self.y += G * self.speed_y.get_v()
-        
-        return pygame.sprite.spritecollide(self, walls, False)
-        
+
+        self.colided_srngs = pygame.sprite.spritecollide(self, srngs, False)
+
+        self.collides = {
+                        "wall": pygame.sprite.spritecollide(self, walls, False),
+                        "syringe": self.colided_srngs
+                    }
+
+        self.output = [self.collides, self.colided_srngs]
+
+        if self.y > HEIGHT+50 or self.y < -50:
+            self.collides["wall"] = True;
+
+        return self.output
 
 class Wall(Unit, pygame.sprite.Sprite):
     def __init__(self, x, y, width, height, speed):
@@ -69,30 +79,57 @@ class Wall(Unit, pygame.sprite.Sprite):
         
         self.x -= self.speed
         
-        if self.x < 0:
+        if self.x < -50:
             self.kill()
-
-
 class WallFabric:
     def __init__(self):
         self.speed = 3
-    
+
     def create(self):
         color = (0, 255, 0)
-        
-        x = 500
+
+        x = WIDTH+100
         y1, y2 = HEIGHT, 0
-        
+
         width = 100
         height1 = random.randint(100, HEIGHT)
-        
+
         height2 = HEIGHT - height1 // 2 - 70
-        
+
         Wall1 = Wall(x, y1, width, height1, self.speed)
         Wall2 = Wall(x, y2, width, height2, self.speed)
-        
+
         return Wall1, Wall2
 
+class Syringe(Unit, pygame.sprite.Sprite):
+    def __init__(self, x, y, width, height, speed):
+        pygame.sprite.Sprite.__init__(self)
+        super().__init__(x, y, width, height, texture="syringe.png")
+
+        self.speed = speed
+
+    def update(self, scr):
+        super().update(scr)
+        self.x -= self.speed
+
+        if self.x < -30:
+            self.kill()
+
+
+class SyringeFabric:
+    def __init__(self):
+        self.speed = 6
+
+    def create(self):
+        x = WIDTH+100
+        y = random.randint(0, HEIGHT)
+
+        width = SYRINGE_WIDTH
+        height = SYRINGE_HEIGHT
+
+        syringe = Syringe(x, y, width, height, self.speed)
+
+        return syringe
 
 class Score:
     def __init__(self, score):
