@@ -3,8 +3,6 @@ from forces import *
 from trips import *
 from random import randint as rd, choice
 
-
-
 pygame.init()
 pygame.mixer.init()
 
@@ -14,7 +12,10 @@ pygame.time.set_timer(SPAWN_WALL_EVENT, SPAWN_WALL_RATE)
 
 scr = pygame.display.set_mode((WIDTH, HEIGHT))
 game_surface = pygame.Surface((WIDTH, HEIGHT))
+background_img = pygame.image.load(os.path.join(TEXTURES_DIR, "background.png")).convert()
+bg_music = os.path.join(SOUNDS_DIR, "bg_music.mp3")
 clock = pygame.time.Clock()
+mixer = pygame.mixer
 
 player = Player()
 
@@ -36,7 +37,13 @@ ADSKIY_PIZDEC = False  # К сожелению
 trip = None
 previous = None
 
+bg_sound = mixer.Sound(bg_music)
+bg_sound.play()
+bg_sound.set_volume(0.5)
+
 while game:
+
+
     for e in pygame.event.get():
         if e.type == pygame.QUIT:
             game = False
@@ -58,18 +65,19 @@ while game:
     if trip_flag:
         ADSKIY_PIZDEC = trip_flag
 
-    game_surface.fill((0, 100, 255))
+    game_surface.blit(background_img, (0, 0))
     colided_syringes = player.update(game_surface, walls, srngs)[1]
-    mixer = pygame.mixer
+
 
     if colided_syringes:
-        jump_sound = mixer.Sound(os.path.join(SOUNDS_DIR, "syringe_use.mp3"))
-        jump_sound.play()
-        jump_sound.set_volume(1)
+        use_sound = mixer.Sound(os.path.join(SOUNDS_DIR, "syringe_use.mp3"))
+        use_sound.play()
+        use_sound.set_volume(1)
 
         trips = list(SOUNDS.keys())
 
         if trip is None and previous is None:
+            bg_sound.stop()
             trip = choice(trips)
         else:
             new_trip = choice(trips)
@@ -100,7 +108,10 @@ while game:
     clock.tick(FPS)
 
     if ADSKIY_PIZDEC and trip is not None:
-        effected_surface, rect = trip(game_surface)
+        if trip == effect_milana:
+            effected_surface, rect = effect_milana(game_surface, walls, srngs, player)
+        else:
+            effected_surface, rect = trip(game_surface)
         scr.blit(effected_surface, rect)
     else:
         scr.blit(game_surface, (0, 0))

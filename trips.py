@@ -1,4 +1,7 @@
+from CONSTANTS import *
+
 import math
+import os.path
 import numpy as np
 import pygame
 
@@ -53,6 +56,7 @@ def effect_invert(surface):
     result = pygame.surfarray.make_surface(arr)
     return result, result.get_rect(topleft=(0, 0))
 
+
 def effect_rgb(surface):
     width, height = surface.get_size()
 
@@ -62,7 +66,7 @@ def effect_rgb(surface):
 
     arr = pygame.surfarray.pixels3d(small_surf).astype(np.int16)
 
-    time = pygame.time.get_ticks() / 300
+    time = pygame.time.get_ticks() / 150
 
     yy, xx = np.meshgrid(np.arange(small_h), np.arange(small_w), indexing='ij')
     dx = xx - small_w // 2
@@ -84,11 +88,42 @@ def effect_rgb(surface):
 
     return new_surf, new_surf.get_rect()
 
+def set_all_texture(surface, walls, srngs, player, path):
+    texture = pygame.transform.scale(
+        pygame.image.load(os.path.join(TEXTURES_DIR, path)).convert_alpha(),
+        (WIDTH, HEIGHT)
+    )
+
+    result = texture.copy()
+
+    all_sprites = list(walls.sprites()) + list(srngs.sprites()) + [player]
+
+    for sprite in all_sprites:
+        x, y = sprite.rect.topleft
+        w, h = sprite.rect.size
+
+        tex = pygame.transform.scale(texture, (w, h))
+
+        mask = pygame.mask.from_surface(sprite.image)
+        mask_surf = mask.to_surface(setcolor=(255,255,255,255), unsetcolor=(0,0,0,0))
+        mask_surf.set_alpha(255)
+
+        tex.blit(mask_surf, (0,0), special_flags=pygame.BLEND_RGBA_MULT)
+
+        result.blit(tex, (x, y))
+
+    return result, result.get_rect(topleft=(0, 0))
+
+def effect_milana(surface, walls, srngs, player):
+    result, rect = set_all_texture(surface, walls, srngs, player, "milana.png")
+    return result, rect
+
 
 SOUNDS = {
     effect_wave:"bing_bing_boo.mp3",
-    effect_rgb:"",
-    effect_spin:"",
+    effect_spin:"spin.mp3",
     effect_vibe:"",
-    effect_invert:""
+    effect_invert:"",
+    effect_rgb:"rgb.mp3",
+    effect_milana:"grustniy_track_sk.mp3"
 }

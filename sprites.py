@@ -24,7 +24,13 @@ class Unit:
         self.x, self.y = x, y
         
         self.move()
-    
+
+    def getTexture(self):
+        return self.image
+
+    # def setTexture(self, texture):
+    #     self.setted_image = texture
+    #     print(texture)
     def move(self):
         self.rect.center = (self.x, self.y)
     
@@ -51,12 +57,12 @@ class Player(Unit):
         self.speed_y.update()        
         self.y += G * self.speed_y.get_v()
 
-        self.colided_srngs = pygame.sprite.spritecollide(self, srngs, False)
 
+        self.colided_srngs = pygame.sprite.spritecollide(self, srngs, False)
         self.collides = {
                         "wall": pygame.sprite.spritecollide(self, walls, False),
                         "syringe": self.colided_srngs
-                    }
+                        }
 
         self.output = [self.collides, self.colided_srngs]
 
@@ -66,12 +72,13 @@ class Player(Unit):
         return self.output
 
 class Wall(Unit, pygame.sprite.Sprite):
-    def __init__(self, x, y, width, height, speed):
-        color = (0, 255, 0)
-        
+    def __init__(self, x, y, width, height, speed, facet=False):
+
         pygame.sprite.Sprite.__init__(self)
-        super().__init__(x, y, width, height, color=color)
-        
+
+        if facet: super().__init__(x, y, width, height, texture="rotated_tube.png")
+        else: super().__init__(x, y, width, height, texture="tube.png")
+
         self.speed = speed
     
     def update(self, scr):
@@ -97,7 +104,7 @@ class WallFabric:
         height2 = HEIGHT - height1 // 2 - 70
 
         Wall1 = Wall(x, y1, width, height1, self.speed)
-        Wall2 = Wall(x, y2, width, height2, self.speed)
+        Wall2 = Wall(x, y2, width, height2, self.speed, facet=True)
 
         return Wall1, Wall2
 
