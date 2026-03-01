@@ -1,3 +1,5 @@
+import random
+
 from CONSTANTS import *
 
 import math
@@ -119,11 +121,40 @@ def effect_milana(surface, walls, srngs, player):
     return result, rect
 
 
+def mirror_effect(surface):
+    mirrored = pygame.transform.flip(surface, True, False)
+    rect = mirrored.get_rect()
+
+    return mirrored, rect
+
+def glitch_effect(surface):
+    variants = ["osel.png", "milana.png", "shailushai.png", "bird.png", "skebob.png", "b.png", "bu.png", "kalivan.png"]
+
+    for _ in range(len(variants)*5):
+        variants.append(0)
+
+    glitch = random.choice(variants)
+
+    if glitch != 0:
+        pygame.mixer.Sound(os.path.join(SOUNDS_DIR, "glitch.mp3")).play()
+
+        image = pygame.image.load(os.path.join(TEXTURES_DIR, glitch)).convert_alpha()
+        image = pygame.transform.scale(image, surface.get_size())
+
+        result = surface.copy()
+        result.blit(image, (0, 0))
+    else:
+        result = surface
+
+    return result, result.get_rect()
+
 SOUNDS = {
     effect_wave:"bing_bing_boo.mp3",
     effect_spin:"spin.mp3",
-    effect_vibe:"",
-    effect_invert:"",
+    effect_vibe:"vibe.mp3",
+    effect_invert:"bg_music_inverted.mp3",
     effect_rgb:"rgb.mp3",
-    effect_milana:"grustniy_track_sk.mp3"
+    effect_milana:"grustniy_track_sk.mp3",
+    mirror_effect:"bg_music_reversed.mp3",
+    glitch_effect:""
 }
