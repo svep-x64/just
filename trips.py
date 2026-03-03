@@ -1,12 +1,14 @@
-import random
-
 from CONSTANTS import *
 
 import math
+import random
 import os.path
 import numpy as np
+import cv2
 import pygame
 
+cap = cv2.VideoCapture(os.path.join(TEXTURES_DIR, "hello_neighbor.mp4"))
+active_videos = []
 
 def effect_vibe(surface):
     width, height = surface.get_size()
@@ -52,6 +54,7 @@ def effect_spin(surface):
     rect = rotated.get_rect(center=(width // 2, height // 2))
     return rotated, rect
 
+
 def effect_invert(surface):
     arr = pygame.surfarray.array3d(surface)
     arr = 255 - arr
@@ -90,6 +93,7 @@ def effect_rgb(surface):
 
     return new_surf, new_surf.get_rect()
 
+
 def set_all_texture(surface, walls, srngs, player, path):
     texture = pygame.transform.scale(
         pygame.image.load(os.path.join(TEXTURES_DIR, path)).convert_alpha(),
@@ -107,14 +111,15 @@ def set_all_texture(surface, walls, srngs, player, path):
         tex = pygame.transform.scale(texture, (w, h))
 
         mask = pygame.mask.from_surface(sprite.image)
-        mask_surf = mask.to_surface(setcolor=(255,255,255,255), unsetcolor=(0,0,0,0))
+        mask_surf = mask.to_surface(setcolor=(255, 255, 255, 255), unsetcolor=(0, 0, 0, 0))
         mask_surf.set_alpha(255)
 
-        tex.blit(mask_surf, (0,0), special_flags=pygame.BLEND_RGBA_MULT)
+        tex.blit(mask_surf, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
         result.blit(tex, (x, y))
 
     return result, result.get_rect(topleft=(0, 0))
+
 
 def effect_milana(surface, walls, srngs, player):
     result, rect = set_all_texture(surface, walls, srngs, player, "milana.png")
@@ -127,14 +132,13 @@ def mirror_effect(surface):
 
     return mirrored, rect
 
-def glitch_effect(surface):
-    variants = ["osel.png", "milana.png", "shailushai.png", "bird.png", "skebob.png", "b.png", "bu.png", "kalivan.png"]
 
-    for _ in range(len(variants)*5):
+def effect_glitch(surface):
+    variants = ["osel.png", "milana.png", "shailushai.png", "bird.png", "skebob.png", "b.png", "bu.png", "kalivan.png"]
+    for _ in range(len(variants) * 5):
         variants.append(0)
 
     glitch = random.choice(variants)
-
     if glitch != 0:
         pygame.mixer.Sound(os.path.join(SOUNDS_DIR, "glitch.mp3")).play()
 
@@ -148,13 +152,67 @@ def glitch_effect(surface):
 
     return result, result.get_rect()
 
+def effect_video(surface, mixer):
+    global active_videos
+
+    chance = 0.05
+    screen_w, screen_h = surface.get_size()
+
+    if random.random() < chance:
+        mixer.Sound(os.path.join(SOUNDS_DIR, "neighbor_sound.mp3")).play()
+        video_path = os.path.join(TEXTURES_DIR, "hello_neighbor.mp4")
+
+        cap = cv2.VideoCapture(video_path)
+
+        if cap.isOpened():
+
+            width = random.randint(50, 100)
+            x = random.randint(0, screen_w - width)
+            y = random.randint(0, screen_h - int(width / 1.5))
+
+            active_videos.append({
+                "cap": cap,
+                "pos": (x, y),
+                "size": (width, int(width / 1.5))
+            })
+        else:
+            pass
+
+    new_surface = surface.copy()
+
+    videos_to_remove = []
+
+    for video in active_videos:
+        ret, frame = video["cap"].read()
+
+        if not ret:
+            video["cap"].release()
+            videos_to_remove.append(video)
+            continue
+
+        frame = cv2.resize(frame, video["size"])
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = np.rot90(frame)
+
+        video_surface = pygame.surfarray.make_surface(frame)
+        video_surface = pygame.transform.flip(video_surface, True, False)
+
+        new_surface.blit(video_surface, video["pos"])
+
+    for video in videos_to_remove:
+        active_videos.remove(video)
+
+    return new_surface, new_surface.get_rect()
+
+
 SOUNDS = {
-    effect_wave:"bing_bing_boo.mp3",
-    effect_spin:"spin.mp3",
-    effect_vibe:"vibe.mp3",
-    effect_invert:"bg_music_inverted.mp3",
-    effect_rgb:"rgb.mp3",
-    effect_milana:"grustniy_track_sk.mp3",
-    mirror_effect:"bg_music_reversed.mp3",
-    glitch_effect:""
+    effect_wave: "bing_bing_boo.mp3",
+    effect_spin: "spin.mp3",
+    effect_vibe: "vibe.mp3",
+    effect_invert: "bg_music_inverted.mp3",
+    effect_rgb: "rgb.mp3",
+    effect_milana: "grustniy_track_sk.mp3",
+    mirror_effect: "bg_music_reversed.mp3",
+    effect_glitch: "",
+    effect_video: ""
 }

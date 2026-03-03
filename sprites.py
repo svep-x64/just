@@ -164,14 +164,15 @@ class SyringeFabric:
         return syringe
 
 
-class Score:
-    def __init__(self, score):
+class Stroke:
+    def __init__(self, stroke):
         self.font = pygame.font.Font(None, 64)
-        self.score = score
-        self.text = self.font.render(str(self.score), True, (0, 0, 0))
+        self.stroke = stroke
+        self.text = self.font.render(str(self.stroke), True, (0, 0, 0))
         self.rect = self.text.get_rect(centerx=(WIDTH / 2), y=10)
 
-    def update(self, scr, score):
-        self.score = score
-        self.text = self.font.render(str(self.score), True, (0, 0, 0))
+    def update(self, scr, stroke):
+        self.stroke = stroke
+        self.text = self.font.render(str(self.stroke), True, (0, 0, 0))
         scr.blit(self.text, self.rect)
+

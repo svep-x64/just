@@ -2,14 +2,22 @@ from sprites import *
 from menu import *
 from trips import *
 from random import randint as rd, choice
+import pygame
 
 pygame.init()
 pygame.font.init()
 pygame.mixer.init()
+
 clock = pygame.time.Clock()
 game_surface = pygame.Surface((WIDTH, HEIGHT))
 scr = pygame.display.set_mode((WIDTH, HEIGHT))
+
+bg_music = os.path.join(SOUNDS_DIR, "bg_music.mp3")
+mixer = pygame.mixer
+bg_sound = mixer.Sound(bg_music)
+
 pygame.display.set_caption("DruggyBird")
+
 
 def game_loop():
     SPAWN_WALL_RATE = 1000
@@ -17,8 +25,6 @@ def game_loop():
     pygame.time.set_timer(SPAWN_WALL_EVENT, SPAWN_WALL_RATE)
 
     background_img = pygame.image.load(os.path.join(TEXTURES_DIR, "background.png")).convert()
-    bg_music = os.path.join(SOUNDS_DIR, "bg_music.mp3")
-    mixer = pygame.mixer
 
     wall_fabric = WallFabric()
     walls = pygame.sprite.Group()
@@ -31,7 +37,7 @@ def game_loop():
     srngs.add(syringe_fabric.create())
 
     score = 0
-    score_text = Score(score)
+    score_text = Stroke(score)
 
     game = True
     ADSKIY_PIZDEC = False  # К сожелению
@@ -39,7 +45,6 @@ def game_loop():
     trip = None
     previous = None
 
-    bg_sound = mixer.Sound(bg_music)
     bg_sound.play()
     bg_sound.set_volume(0.5)
 
@@ -69,21 +74,23 @@ def game_loop():
         # colide_checker = update_data[0]["checker"]
 
         if colided_syringes:
+            mixer.music.stop()
+            bg_sound.stop()
+
             use_sound = mixer.Sound(os.path.join(SOUNDS_DIR, "syringe_use.mp3"))
             use_sound.play()
             use_sound.set_volume(1)
 
             trips = list(SOUNDS.keys())
 
-            if trip is None and previous is None:
-                bg_sound.stop()
+            if previous is None and trip is None:
                 trip = choice(trips)
             else:
-                new_trip = choice(trips)
-                while new_trip == trip:
-                    new_trip = choice(trips)
-                previous = trip
-                trip = new_trip
+                trip = choice(trips)
+                while trip == previous:
+                    trip = choice(trips)
+
+            previous = trip
 
             if ADSKIY_PIZDEC and trip is not None:
                 mixer.music.stop()
@@ -111,6 +118,8 @@ def game_loop():
         if ADSKIY_PIZDEC and trip is not None:
             if trip == effect_milana:
                 effected_surface, rect = effect_milana(game_surface, walls, srngs, player)
+            elif trip == effect_video:
+                effected_surface, rect = effect_video(game_surface, mixer)
             else:
                 effected_surface, rect = trip(game_surface)
             scr.blit(effected_surface, rect)
@@ -120,6 +129,11 @@ def game_loop():
     mixer.music.stop()
     bg_sound.stop()
     mixer.Sound(os.path.join(SOUNDS_DIR, "fail.mp3")).play()
+
+
+print(mixer.music.get_busy())
+mixer.music.stop()
+bg_sound.stop()
 
 menu = MainMenu(
     scr, clock,
