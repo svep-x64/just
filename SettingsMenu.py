@@ -140,7 +140,7 @@ class SettingsMenu:
                     mouse_pos = event.pos
                     if self.button_rect.collidepoint(mouse_pos):
                         self.running = False
-                        self.menu_callback()
+                        #self.menu_callback()
             self.clock.tick(30)
 
         # self.new_screen = pygame.display.set_mode((SETTINGS_WIDTH, SETTINGS_HEIGHT)

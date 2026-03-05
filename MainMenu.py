@@ -74,9 +74,11 @@ class MainMenu:
                     elif self.buttons[2]["rect"].collidepoint(mouse_pos) and self.links_url:
                         webbrowser.open(self.links_url)
                     elif self.buttons[3]["rect"].collidepoint(mouse_pos) and self.links_url:
-                        self.running = False
+                        pygame.display.set_mode((SETTINGS_WIDTH, SETTINGS_HEIGHT))
+                        settings_menu = SettingsMenu(self.screen, self.clock, self.run)
+                        settings_menu.run()
+                        #print(WIDTH, HEIGHT)
+                        pygame.display.set_mode((WIDTH, HEIGHT))
             self.clock.tick(30)
-        new_screen = pygame.display.set_mode((SETTINGS_WIDTH, SETTINGS_HEIGHT))
 
-        settings_menu = SettingsMenu(new_screen, self.clock, self.run)
-        settings_menu.run()
+        
