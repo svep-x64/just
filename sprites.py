@@ -52,7 +52,7 @@ class Player(Unit):
         self.speed_y.update()        
         self.y += G * self.speed_y.get_v()
         
-        return pygame.sprite.spritecollide(self, walls, False)
+        return not pygame.sprite.spritecollide(self, walls, False) and self.rect.bottom > 0 and self.rect.top < HEIGHT
         
 
 class Wall(Unit, pygame.sprite.Sprite):
@@ -69,7 +69,7 @@ class Wall(Unit, pygame.sprite.Sprite):
         
         self.x -= self.speed
         
-        if self.x < 0:
+        if self.rect.right < 0:
             self.kill()
 
 
@@ -80,7 +80,7 @@ class WallFabric:
     def create(self):
         color = (0, 255, 0)
         
-        x = 500
+        x = WIDTH + 50
         y1, y2 = HEIGHT, 0
         
         width = 100

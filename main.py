@@ -16,7 +16,6 @@ clock = pygame.time.Clock()
 player = Player()
 wall_fabric = WallFabric()
 walls = pygame.sprite.Group()
-walls.add(wall_fabric.create())
 
 multiplier = 1
 score = 0
@@ -35,7 +34,7 @@ while game:
     
     scr.fill((0, 100, 255))
     
-    game = not player.update(scr, walls)
+    game = player.update(scr, walls)
     
     for wall in walls.sprites():
         wall.update(scr)
