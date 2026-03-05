@@ -1,5 +1,5 @@
 from sprites import *
-from menu import *
+from MainMenu import *
 from trips import *
 from random import randint as rd, choice
 import pygame
@@ -131,15 +131,13 @@ def game_loop():
     mixer.Sound(os.path.join(SOUNDS_DIR, "fail.mp3")).play()
 
 
-print(mixer.music.get_busy())
 mixer.music.stop()
 bg_sound.stop()
 
 menu = MainMenu(
     scr, clock,
     start_game_callback=game_loop,
-    links_url="https://example.com"
+    links_url="https://github.com/svep-x64/just/tree/shuraa"
 )
 menu.run()
-#
-# pygame.quit()
+
